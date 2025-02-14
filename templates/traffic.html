@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Monitoring</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(45deg, #1d2b64, #f8cdda); 
+            text-align: center; 
+        }
+        .container { 
+            width: 90%; max-width: 800px; margin: auto; 
+            background: white; padding: 20px; border-radius: 10px; 
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2); 
+            margin-top: 50px; 
+        }
+        h2, h3 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { 
+            padding: 12px; border: 1px solid #ddd; 
+            text-align: center; font-size: 16px; 
+        }
+        th { background: #333; color: white; }
+        .table-container { max-height: 300px; overflow-y: auto; margin-top: 10px; }
+        .highlight { background: #ffeb99; }
+        .user-count { font-size: 18px; font-weight: bold; color: #007BFF; }
+    </style>
+    <script>
+        function fetchTrafficData() {
+            fetch('/traffic_data')  // Call the new Flask route
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("userCount").innerText = data.users;
+                    updateTable("userActivityTable", data.user_logs, ["time", "username", "action", "password"]);
+                    updateTable("messageLogTable", data.message_logs, ["time", "user", "message"]);
+                })
+                .catch(error => console.error("Error fetching traffic data:", error));
+        }
+
+        function updateTable(tableId, logs, keys) {
+            let table = document.getElementById(tableId);
+            table.innerHTML = `<tr>${keys.map(key => `<th>${key.charAt(0).toUpperCase() + key.slice(1)}</th>`).join("")}</tr>`;
+            
+            logs.forEach(log => {
+                let row = document.createElement("tr");
+                if (log.action && log.action === "Registered") row.classList.add("highlight");
+                row.innerHTML = keys.map(key => `<td>${log[key]}</td>`).join("");
+                table.appendChild(row);
+            });
+        }
+
+        setInterval(fetchTrafficData, 3000);  // Auto-refresh every 3 seconds
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>📊 Live Traffic Monitoring</h2>
+        <p class="user-count">Active Users: <span id="userCount">{{ users }}</span></p>
+
+        <h3>👥 User Activity Logs</h3>
+        <div class="table-container">
+            <table id="userActivityTable">
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Username</th>
+                    <th>Action</th>
+                    <th>Password (Stored in Server)</th>
+                </tr>
+                {% for log in user_logs %}
+                <tr class="{% if log.action == 'Registered' %}highlight{% endif %}">
+                    <td>{{ log.time }}</td>
+                    <td>{{ log.username }}</td>
+                    <td>{{ log.action }}</td>
+                    <td>{{ log.password }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <h3>📜 Chat Message Logs</h3>
+        <div class="table-container">
+            <table id="messageLogTable">
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Username</th>
+                    <th>Message</th>
+                </tr>
+                {% for log in message_logs %}
+                <tr>
+                    <td>{{ log.time }}</td>
+                    <td>{{ log.user }}</td>
+                    <td>{{ log.message }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</body>
+</html>

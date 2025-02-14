@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Chat Room</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(45deg, #1d2b64, #f8cdda);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 80%;
+            max-height:800px;
+        }
+
+        h2 {
+            margin-top: 0;
+            text-align: center;
+            align-items: center;
+        }
+
+        #messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid gray;
+            padding: 10px;
+            background: #f9f9f9;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        input, button {
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;        
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+            
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+                margin:20px;
+            }
+            input, button {
+                font-size: 17px;
+                padding: 8px;
+            }
+            #messages {
+                font-size: 17px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>💬 Anonymous Chat Room</h2>
+        <div id="messages"></div>
+        <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="handleEnter(event)">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+    <script>
+        var socket = io();
+        var username = "{{ username }}"; // Injected by Flask
+        
+        function sendMessage() {
+            var messageInput = document.getElementById("messageInput");
+            var message = messageInput.value;
+            if (message) {
+                socket.emit("message", { user: username, message: message });
+                messageInput.value = "";
+            }
+        }
+
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+
+        socket.on("message", function(data) {
+            var messagesDiv = document.getElementById("messages");
+            var msgElement = document.createElement("p");
+            msgElement.innerHTML = `<strong>${data.user}:</strong> ${data.message} <small style="color:gray;">(${data.time})</small>`;
+            messagesDiv.appendChild(msgElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll to bottom
+        });
+    </script>
+</body>
+</html>
