@@ -1,3 +1,4 @@
+import eventlet
 import threading
 import sys
 import time
@@ -119,4 +120,6 @@ print(f"[INFO] Server running on: http://{local_ip}:5000")
 
 # Run server in a separate thread
 if __name__ == '__main__':
-    socketio.run(app, host=local_ip, port=5000, debug=False)
+    #Use eventlet to run the app
+    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 5000)), app)
+    # socketio.run(app, host=local_ip, port=5000, debug=False)
